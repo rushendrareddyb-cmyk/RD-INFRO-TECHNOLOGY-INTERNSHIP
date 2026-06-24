@@ -1,14 +1,30 @@
 const mongoose = require('mongoose');
 
+/**
+ * Connect to MongoDB
+ * Uses the MONGODB_URI from environment variables
+ * Implements connection error handling and event listeners
+ */
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+    const conn = await mongoose.connect(process.env.MONGODB_URI);
+
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+
+    // Handle connection events
+    mongoose.connection.on('error', (err) => {
+      console.error(`❌ MongoDB connection error: ${err.message}`);
     });
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+
+    mongoose.connection.on('disconnected', () => {
+      console.warn('⚠️  MongoDB disconnected. Attempting to reconnect...');
+    });
+
+    mongoose.connection.on('reconnected', () => {
+      console.log('✅ MongoDB reconnected');
+    });
   } catch (error) {
-    console.error(`Error: ${error.message}`);
+    console.error(`❌ MongoDB Connection Error: ${error.message}`);
     process.exit(1);
   }
 };
