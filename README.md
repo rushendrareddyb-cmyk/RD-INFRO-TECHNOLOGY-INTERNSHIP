@@ -8,12 +8,16 @@ This repository contains the complete Employee Management System, built using th
 
 ## Features
 - **Secure Authentication:** JWT-based login and registration.
-- **Employee Directory:** Full CRUD capabilities for employee data.
+- - **Employee Directory:** Full CRUD capabilities for employee data.
 - **Modern UI:** Built with React, Vite, and Tailwind CSS.
 - **RESTful API:** Structured Node.js & Express backend.
 
 ## Quick Start
 Please refer to the `SETUP_INSTRUCTIONS.md` file for step-by-step guidance on how to run this project locally.
+
+## Live Demo
+- Frontend (React): [http://localhost:5173](http://localhost:5173)
+- Backend (API): [http://localhost:5000/api](http://localhost:5000/api)
 
 ## Documentation
 - `REQUIREMENTS_ANALYSIS.md`: Core system features and requirements.

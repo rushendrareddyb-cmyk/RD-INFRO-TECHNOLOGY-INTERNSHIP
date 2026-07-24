@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Plus, Edit2, Trash2, Mail, Briefcase } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, Mail, Briefcase, Users } from 'lucide-react';
 import api from '../services/api';
 
 const EmployeeList = () => {
@@ -15,9 +15,11 @@ const EmployeeList = () => {
   const fetchEmployees = async () => {
     try {
       const response = await api.get('/employees');
-      setEmployees(response.data);
+      const payload = response?.data?.data ?? response?.data ?? [];
+      setEmployees(Array.isArray(payload) ? payload : []);
     } catch (error) {
       console.error('Error fetching employees:', error);
+      setEmployees([]);
     } finally {
       setLoading(false);
     }
@@ -34,11 +36,14 @@ const EmployeeList = () => {
     }
   };
 
-  const filteredEmployees = employees.filter(emp => 
-    emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.employeeId.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEmployees = (employees || []).filter((emp) => {
+    const name = (emp?.name || '').toLowerCase();
+    const department = (emp?.department || '').toLowerCase();
+    const employeeId = (emp?.employeeId || '').toLowerCase();
+    const term = searchTerm.toLowerCase();
+
+    return name.includes(term) || department.includes(term) || employeeId.includes(term);
+  });
 
   return (
     <div className="space-y-6">

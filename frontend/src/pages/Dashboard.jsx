@@ -18,20 +18,29 @@ const Dashboard = () => {
   const fetchStats = async () => {
     try {
       const response = await api.get('/employees');
-      const employees = response.data;
-      
-      const departments = new Set(employees.map(emp => emp.department)).size;
-      const totalSalary = employees.reduce((sum, emp) => sum + Number(emp.salary), 0);
+      const payload = response?.data?.data ?? response?.data ?? [];
+      const employees = Array.isArray(payload) ? payload : [];
+
+      const departments = new Set(
+        employees.flatMap((emp) => (emp?.department ? [emp.department] : []))
+      ).size;
+      const totalSalary = employees.reduce((sum, emp) => sum + Number(emp?.salary || 0), 0);
       const avgSalary = employees.length ? totalSalary / employees.length : 0;
 
       setStats({
         totalEmployees: employees.length,
         departments,
         totalSalary,
-        avgSalary
+        avgSalary,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
+      setStats({
+        totalEmployees: 0,
+        departments: 0,
+        totalSalary: 0,
+        avgSalary: 0,
+      });
     } finally {
       setLoading(false);
     }

@@ -1,32 +1,45 @@
 const mongoose = require('mongoose');
 
 /**
- * Connect to MongoDB
- * Uses the MONGODB_URI from environment variables
- * Implements connection error handling and event listeners
+ * Connect to MongoDB with retry logic.
+ * Reads MONGODB_URI from environment variables.
+ * Retries up to 5 times with a 3-second delay between attempts.
+ * If MongoDB is unavailable, the server keeps running and reports database status.
  */
 const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
+  const maxRetries = 5;
+  const retryDelayMs = 3000;
+  const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/employee_management';
 
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const conn = await mongoose.connect(mongoUri, {
+        serverSelectionTimeoutMS: 5000,
+      });
+      console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
 
-    // Handle connection events
-    mongoose.connection.on('error', (err) => {
-      console.error(`❌ MongoDB connection error: ${err.message}`);
-    });
+      mongoose.connection.on('error', (err) => {
+        console.error(`❌ MongoDB connection error: ${err.message}`);
+      });
+      mongoose.connection.on('disconnected', () => {
+        console.warn('⚠️ MongoDB disconnected. Attempting to reconnect...');
+      });
+      mongoose.connection.on('reconnected', () => {
+        console.log('✅ MongoDB reconnected');
+      });
 
-    mongoose.connection.on('disconnected', () => {
-      console.warn('⚠️  MongoDB disconnected. Attempting to reconnect...');
-    });
-
-    mongoose.connection.on('reconnected', () => {
-      console.log('✅ MongoDB reconnected');
-    });
-  } catch (error) {
-    console.error(`❌ MongoDB Connection Error: ${error.message}`);
-    process.exit(1);
+      return true;
+    } catch (error) {
+      console.warn(`⚠️ MongoDB connection attempt ${attempt} failed: ${error.message}`);
+      if (attempt === maxRetries) {
+        console.error('⚠️ MongoDB is unavailable. The server will continue running without the database.');
+        return false;
+      }
+      await new Promise((res) => setTimeout(res, retryDelayMs));
+    }
   }
+
+  return false;
 };
 
 module.exports = connectDB;

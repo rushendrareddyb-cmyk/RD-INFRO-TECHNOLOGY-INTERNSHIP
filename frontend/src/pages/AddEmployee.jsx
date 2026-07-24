@@ -24,12 +24,23 @@ const AddEmployee = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    
+
     try {
-      await api.post('/employees', formData);
+      const payload = {
+        ...formData,
+        salary: Number(formData.salary),
+      };
+      await api.post('/employees', payload);
       navigate('/employees');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add employee');
+      const message = err.response?.data?.message || 'Failed to add employee';
+      const validationErrors = err.response?.data?.errors;
+      if (validationErrors?.length) {
+        const detail = validationErrors.map((item) => `${item.field}: ${item.message}`).join(' | ');
+        setError(`${message} — ${detail}`);
+      } else {
+        setError(message);
+      }
     } finally {
       setLoading(false);
     }

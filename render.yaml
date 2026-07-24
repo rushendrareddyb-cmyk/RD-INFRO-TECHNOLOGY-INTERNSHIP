@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: rd-infro-technology
+    env: node
+    plan: free
+    buildCommand: |
+      cd frontend && npm install && npm run build
+      cd ../backend && npm install
+    startCommand: |
+      cd backend && NODE_ENV=production node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: CORS_ORIGIN
+        value: https://rd-infro-technology.onrender.com
